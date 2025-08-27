@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommendation</title>
+    <style>
+        /* Netflix-style dark theme */
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #141414;
+    color: #fff;
+    font-family: Arial, sans-serif;
+}
+/* Pop-up Box Styling */
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.popup-content {
+    background: #222;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    color: white;
+    width: 350px;
+}
+
+.popup-content input {
+    width: 80%;
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #333;
+    color: white;
+}
+
+.popup-content button {
+    padding: 10px 15px;
+    margin-top: 10px;
+    background: red;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.popup-content button:hover {
+    background: darkred;
+}
+
+.switch-option {
+    margin-top: 10px;
+    color: lightgray;
+    cursor: pointer;
+}
+
+.switch-option:hover {
+    color: white;
+}
+
+/* Navigation Bar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 50px;
+    background: black;
+    /* position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 999; */
+}
+
+.navbar h1 {
+    color: red;
+    font-size: 28px;
+}
+
+.navbar ul {
+    list-style: none;
+    display: flex;
+}
+
+.navbar ul li {
+    margin: 0 15px;
+}
+
+.navbar ul li a {
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+}
+
+/* Home Page Content */
+.home-container {
+    text-align: center;
+    margin-top: 150px;
+}
+
+.home-container h2 {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.home-container p {
+    font-size: 18px;
+    color: gray;
+}
+
+.btn {
+    display: inline-block;
+    background: red;
+    color: white;
+    padding: 10px 20px;
+    margin-top: 15px;
+    text-decoration: none;
+    font-size: 18px;
+    border-radius: 5px;
+    transition: 0.3s;
+}
+
+.btn:hover {
+    background: darkred;
+}
+    </style>
+</head>
+<body>
+    <!-- User ID Pop-Up Box -->
+    <div id="user-id-popup" class="popup">
+        <div class="popup-content">
+            <h2 id="popup-title">Create Your User ID</h2>
+            <p id="popup-message">Enter any 3-digit number to create your User ID.</p>
+            <input type="text" id="user-id-input" placeholder="Enter User ID" maxlength="3">
+            <button onclick="submitUserID()">Submit</button>
+            <p class="switch-option" onclick="toggleUserIDMode()">Already have a User ID?</p>
+        </div>
+    </div>
+
+
+    <nav class="navbar">
+        <h1>MovieZone</h1>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/movies">Movies</a></li>
+        </ul>
+    </nav>
+
+    <div class="home-container">
+        <h2>Welcome to MovieZone</h2>
+        <p>Discover movies tailored to your taste.</p>
+        <a href="/movies" class="btn">Explore Movies</a>
+    </div>
+<!-- 
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("userIdPopup").style.display = "flex";
+        });
+
+        function submitUserId() {
+            let userId = document.getElementById("userIdInput").value;
+            if (userId.length === 3 && !isNaN(userId)) {
+                document.getElementById("userIdPopup").style.display = "none";
+            } else {
+                alert("Please enter a valid 3-digit User ID.");
+            }
+        }
+
+        function toggleExistingUser() {
+            let title = document.getElementById("popup-title");
+            if (title.innerText === "Create Your User ID") {
+                title.innerText = "Enter Your User ID";
+            } else {
+                title.innerText = "Create Your User ID";
+            }
+        }
+
+    </script> -->
+
+    <script>
+        let isCreatingNewUser = true; // Track whether user is creating a new ID or entering an existing one
+    
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("user-id-popup").style.display = "flex"; // Always show pop-up on page load
+        });
+    
+        function submitUserID() {
+            const userInput = document.getElementById("user-id-input").value.trim();
+    
+            if (userInput.length !== 3 || isNaN(userInput)) {
+                alert("User ID must be exactly 3 digits!");
+                return;
+            }
+    
+            let storedUsers = JSON.parse(localStorage.getItem("users")) || [];
+    
+            if (isCreatingNewUser) {
+                // Check if User ID is already taken
+                if (storedUsers.includes(userInput)) {
+                    alert("This ID is already taken. Please try another one.");
+                    return;
+                }
+                // Store New User ID
+                storedUsers.push(userInput);
+                localStorage.setItem("users", JSON.stringify(storedUsers));
+            } else {
+                // If user is trying to log in, verify the ID
+                if (!storedUsers.includes(userInput)) {
+                    alert("This ID does not exist. Please create a new one.");
+                    return;
+                }
+            }
+    
+            // Store the current session User ID
+            localStorage.setItem("userID", userInput);
+    
+            // Show User ID in Navbar
+            displayUserID(userInput);
+    
+            // Close Pop-Up Box
+            document.getElementById("user-id-popup").style.display = "none";
+        }
+    
+        function displayUserID(userID) {
+            const navbar = document.querySelector(".navbar");
+            let userDisplay = document.getElementById("user-id-display");
+    
+            if (!userDisplay) {
+                userDisplay = document.createElement("div");
+                userDisplay.id = "user-id-display";
+                userDisplay.style.color = "white";
+                userDisplay.style.marginRight = "20px";
+                navbar.appendChild(userDisplay);
+            }
+    
+            userDisplay.innerText = `User ID: ${userID}`;
+        }
+    
+        function toggleUserIDMode() {
+            isCreatingNewUser = !isCreatingNewUser;
+            document.getElementById("popup-title").innerText = isCreatingNewUser ? "Create Your User ID" : "Enter Your User ID";
+            document.getElementById("popup-message").innerText = isCreatingNewUser ? "Enter any 3-digit number to create your User ID." : "Enter your existing User ID.";
+        }
+    </script>
+    
+    
+</body>
+</html>
